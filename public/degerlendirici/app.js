@@ -168,7 +168,11 @@ function parseTeacher(text=''){
 }
 function parseTerm(text=''){
  const y=text.match(/((?:19|20)\d{2})\s*[-–—/]\s*((?:19|20)\d{2})/);
- const season=text.match(/güz|bahar|yaz/i)?.[0]||'';
+ // Prefer the term beside the academic year or an explicit term label in a syllabus.
+ const termWord=/(?<![\p{L}\p{M}\d])(güz|bahar|yaz)(?![\p{L}\p{M}\d])/iu;
+ const afterYear=y?text.slice(y.index+y[0].length).match(/^[\s|,/:–—-]*(güz|bahar|yaz)(?![\p{L}\p{M}\d])/iu):null;
+ const labeled=text.match(/(?:dönem(?:i)?|yarıyıl(?:ı)?)\s*[:：|]\s*(güz|bahar|yaz)(?![\p{L}\p{M}\d])/iu);
+ const season=(afterYear||labeled||text.match(termWord))?.[1]||'';
  return {year:y?y[1]+'–'+y[2]:'',season:season?season[0].toUpperCase()+season.slice(1).toLocaleLowerCase('tr-TR'):''};
 }
 function courseFields(c){
