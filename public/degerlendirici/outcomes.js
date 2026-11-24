@@ -37,14 +37,14 @@ function readOutcomeRows(){
  return {items,renumber};
 }
 function storeOutcomes({items,renumber}){
- const existing=new Set(currentOutcomes().map(v=>v.number)),kept=new Set(items.map(v=>v.number));
+ const existing=new Set(currentOutcomes().map(v=>v.number));
  for(const s of Object.values(course.sheets)){
   s.maps=s.maps.map(label=>{
    if(!/^(?:ÖÇ\s*)?\d+(?:\s*[,/+\-–]\s*(?:ÖÇ\s*)?\d+)*$/iu.test(label))return label;
    const ids=label.match(/\d+/g).map(Number);
-   if(!ids.some(id=>renumber.has(id)&&renumber.get(id)!==id||existing.has(id)&&!kept.has(id)))return label;
-   const updated=ids.flatMap(id=>renumber.has(id)?[renumber.get(id)]:existing.has(id)&&!kept.has(id)?[]:[id]);
-   return updated.length?'ÖÇ '+updated.join('-'):'';
+   if(!ids.some(id=>renumber.has(id)?renumber.get(id)!==id:existing.has(id)))return label;
+   const updated=new Set(ids.flatMap(id=>renumber.has(id)?[renumber.get(id)]:existing.has(id)?[]:[id]));
+   return updated.size?'ÖÇ '+[...updated].join('-'):'';
   });
  }
  course.outcomeList=items;

@@ -111,8 +111,15 @@ let rosterRequest;
 function chooseRoster(){const input=document.createElement('input');input.type='file';input.accept='.pdf,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.webp';input.onchange=()=>{if(input.files[0])inspectRoster(input.files[0])};input.click()}
 async function readRoster(file,scan=true){if(/\.(png|jpe?g|webp)$/i.test(file.name))return readRosterImage(file);return /\.pdf$/i.test(file.name)?rosterPdf(file,scan):rosterWorkbook(await readBook(file))}
 async function inspectRoster(file){
- dialog('OBS yoklama dosyası','<p>Öğrenci listesi okunuyor…</p>');
- try{showRoster(await readRoster(file),file.name)}catch{dialog('OBS yoklama dosyası','<p>Liste okunamadı. Ders veya sınav yoklamasını Excel, CSV, PDF ya da okunaklı bir görüntü olarak seçin.</p>'+btn('Dosya seç','chooseRoster()','upload'))}
+ const owner=course;
+ dialog('OBS yoklama dosyası','<p id="rosterRead" role="status">Öğrenci listesi okunuyor…</p>');
+ const reading=$('rosterRead'),active=()=>course===owner&&modal.open&&reading.isConnected;
+ try{
+  const list=await readRoster(file);
+  if(active())showRoster(list,file.name);
+ }catch{
+  if(active())dialog('OBS yoklama dosyası','<p>Liste okunamadı. Ders veya sınav yoklamasını Excel, CSV, PDF ya da okunaklı bir görüntü olarak seçin.</p>'+btn('Dosya seç','chooseRoster()','upload'));
+ }
 }
 function showRoster(list,filename){
  if(!list.entries.length){dialog('OBS yoklama dosyası','<p>'+(list.scanned?'Taramadaki öğrenci numaraları ayırt edilemedi. OBS’nin Excel çıktısını veya daha net bir taramayı seçin.':'Öğrenci No ve Adı Soyadı sütunlarında öğrenci bulunamadı.')+'</p>'+btn('Başka dosya seç','chooseRoster()','upload'));return}

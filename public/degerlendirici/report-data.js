@@ -26,7 +26,12 @@ function weightedLetters(){
   return scores;
  });
  if(parts.some(p=>!p))return result;
- for(const id of parts[0].keys())if(parts.every(p=>p.has(id)))result.set(id,letterOf(parts.reduce((a,p)=>a+p.get(id),0),''));
+ for(const id of parts[0].keys()){
+  if(!parts.every(p=>p.has(id)))continue;
+  const score=parts.reduce((total,part)=>total+part.get(id),0);
+  // Weighting can put a score a few floating-point steps below its cutoff.
+  result.set(id,letterOf(score,'',2*Number.EPSILON*Math.abs(score)));
+ }
  return result;
 }
 function reportDefaults(){

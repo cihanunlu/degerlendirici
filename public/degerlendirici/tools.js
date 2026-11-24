@@ -18,13 +18,15 @@ function matrix(w,n){
 }
 async function readBook(f){if(typeof XLSX==='undefined')await loadLibrary('XLSX');return /\.csv$/i.test(f.name)?XLSX.read(await f.text(),{type:'string',raw:true}):XLSX.read(await f.arrayBuffer(),{type:'array'})}
 function previewTable(rows){return '<div class="scroll"><table>'+rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</table></div>'}
+const isQuestionHeader=v=>/soru|^s\d+$/.test(norm(v));
+const isOutcomeMap=v=>/^o(?:c)?\s*\d/.test(norm(v));
 function anonymousSheet(rows){
  const ordinal=v=>/^(?:#|ogrenci\s*#|sira\s*(?:no(?:su)?|numarasi|#))$/.test(norm(v));
- const questionHeader=rows.findIndex(r=>r.some(v=>/soru|^s\d+$/.test(norm(v))));
+ const start=rows.findIndex(r=>ordinal(r[0]));
+ if(start<0)return null;
+ const questionHeader=rows.slice(0,start+1).findLastIndex(r=>r.slice(1).some(isQuestionHeader));
  if(questionHeader<0)return null;
- const header=rows[questionHeader],columns=header.flatMap((v,j)=>/soru|^s\d+$/.test(norm(v))?[j]:[]);
- const start=rows.findIndex((r,i)=>i>=questionHeader&&ordinal(r[0]));
- if(start<0||!columns.length)return null;
+ const header=rows[questionHeader],columns=header.flatMap((v,j)=>j>0&&isQuestionHeader(v)?[j]:[]);
  const intervening=rows.slice(questionHeader+1,start);
  const mapping=intervening.find(r=>norm(r[0]).startsWith('ogrenme cikti'))||(
    start===questionHeader&&rows[start+1]?.[0]===''?rows[start+1]:[]);
@@ -42,11 +44,11 @@ function sheetFrom(rows){
  const index=rows.findIndex(r=>r.some(v=>/ogrenci.*(no|numara)|^numara$|^student id$/.test(norm(v))));
  if(index<0)return anonymousSheet(rows);
  const header=rows[index],id=header.findIndex(v=>/ogrenci.*(no|numara)|^numara$|^student id$/.test(norm(v))),name=header.findIndex(v=>/ad.*soyad|isim/.test(norm(v)));
- const map=rows[index+1]||[];
- const qs=header.flatMap((v,k)=>(/soru|^s\d+$/.test(norm(v))||(!v&&/^o[c]?\s*\d/.test(norm(map[k]))))?[k]:[]),g=header.findIndex(v=>norm(v).includes('harf')),p=header.findIndex(v=>/ham not|basari (puani|notu)|donem sonu puan/.test(norm(v)));
+ const next=rows[index+1]||[],map=String(next[id]??'').trim()?[]:next;
+ const qs=header.flatMap((v,k)=>isQuestionHeader(v)||(!v&&isOutcomeMap(map[k]))?[k]:[]),g=header.findIndex(v=>norm(v).includes('harf')),p=header.findIndex(v=>/ham not|basari (puani|notu)|donem sonu puan/.test(norm(v)));
  if(!qs.length&&g<0&&p<0)return null;
- const mapped=qs.some(k=>/öç/i.test(map[k]));
- let lastHeader="";return {grouped:qs.some(k=>!header[k]),questions:qs.map(k=>lastHeader=String(header[k]||lastHeader)),maps:qs.map(k=>mapped?String(map[k]||'').trim().replace(/^Ö(?:Ç)?\s*(\d+)$/i,(_,n)=>'ÖÇ '+n):''),rows:rows.slice(index+1+(mapped?1:0)).filter(r=>String(r[id]??'').trim()&&!/ortalama|toplam/.test(norm(r[id]))).map(r=>importRowAttendance([String(r[id]),String(r[name]??''),...qs.map(k=>r[k]),r[p]??'',r[g]??''],r,header))};
+ const mapped=qs.some(k=>isOutcomeMap(map[k])||/öç/i.test(map[k]));
+ let lastHeader="";return {grouped:qs.some(k=>!header[k]),questions:qs.map(k=>lastHeader=String(header[k]||lastHeader)),maps:qs.map(k=>mapped?String(map[k]||'').trim().replace(/^[ÖO][ÇC]?\s*(\d+)$/i,(_,n)=>'ÖÇ '+n):''),rows:rows.slice(index+1+(mapped?1:0)).filter(r=>String(r[id]??'').trim()&&!/ortalama|toplam/.test(norm(r[id]))).map(r=>importRowAttendance([String(r[id]),String(r[name]??''),...qs.map(k=>r[k]),r[p]??'',r[g]??''],r,header))};
 }
 function isAbsentMark(value){return /^(g|gr|girmedi|katilmadi)$/.test(norm(value))}
 function importRowAttendance(row,source,header){
@@ -79,9 +81,47 @@ function examAverages(sheet){
  for(const entry of [...questions,total])if(entry.count)entry.mean=entry.sum/entry.count;
  return {questions,total,participants};
 }
-let activeSheet='',pendingSheets;
-async function importBook(file){let w=await readBook(file);pendingSheets={};for(const n of w.SheetNames){let sheet=sheetFrom(matrix(w,n));if(sheet){sheet.sourceFormat=/\.xlsx$/i.test(file.name)?'xlsx':/\.xls$/i.test(file.name)?'xls':'';let key=n;for(let i=2;Object.hasOwn(course.sheets,key)||Object.hasOwn(pendingSheets,key);i++)key=n.slice(0,24)+' ('+i+')';Object.defineProperty(pendingSheets,key,{value:sheet,enumerable:true,configurable:true})}}const names=Object.keys(pendingSheets);dialog('Not tablosunu içe aktar',names.length?'<p>'+names.map(n=>esc(n)+' · '+pendingSheets[n].rows.length+(pendingSheets[n].anonymous?' anonim satır':' öğrenci')).join('<br>')+'</p>'+(names.some(n=>pendingSheets[n].anonymous)?'<p>Anonim satırlarda yalnızca soru istatistikleri hesaplanır. Sıra numaraları bu sınavın içindeki kayıtları gösterir.</p>':'')+btn('Tabloları ekle','acceptImport()','check'):'<p>Öğrenci No ile birlikte Soru, Ham Not veya Harf Notu başlığı bulunamadı. Dosyanız bölümde saklandı. Düzenlenebilir bir şablon için not tablosunu kullanabilirsiniz.</p>'+btn('Not tablosunu aç','grades()'))}
-async function acceptImport(){course.sheets={...course.sheets,...pendingSheets};activeSheet=Object.keys(pendingSheets)[0];course.done[4]=false;await save();grades()}
+let activeSheet='';
+async function importBook(file){
+ const owner=course;
+ dialog('Not tablosunu içe aktar','<p id="gradeRead" role="status">Puan tablosu okunuyor…</p>');
+ const reading=$('gradeRead'),active=()=>course===owner&&modal.open&&reading.isConnected;
+ const pending=Object.create(null);
+ try{
+  const workbook=await readBook(file);
+  if(!active())return;
+  for(const tab of workbook.SheetNames){
+   const sheet=sheetFrom(matrix(workbook,tab));
+   if(!sheet)continue;
+   sheet.sourceFormat=/\.xlsx$/i.test(file.name)?'xlsx':/\.xls$/i.test(file.name)?'xls':'';
+   let key=tab;
+   for(let i=2;Object.hasOwn(owner.sheets,key)||Object.hasOwn(pending,key);i++)key=tab.slice(0,24)+' ('+i+')';
+   pending[key]=sheet;
+  }
+ }catch{
+  if(active())dialog('Puan tablosu okunamadı','<p>Dosyanız bölümde saklandı. Geçerli bir XLS, XLSX veya UTF-8 CSV dosyası seçin.</p>'+btn('Not tablosunu aç','grades()'));
+  return;
+ }
+ const tabs=Object.keys(pending);
+ if(!tabs.length){
+  dialog('Not tablosunu içe aktar','<p>Öğrenci No ile birlikte Soru, Ham Not veya Harf Notu başlığı bulunamadı. Dosyanız bölümde saklandı. Düzenlenebilir bir şablon için not tablosunu kullanabilirsiniz.</p>'+btn('Not tablosunu aç','grades()'));
+  return;
+ }
+ const summary=tabs.map(tab=>esc(tab)+' · '+pending[tab].rows.length+(pending[tab].anonymous?' anonim satır':' öğrenci')).join('<br>');
+ const anonymousNotice=tabs.some(tab=>pending[tab].anonymous)?'<p>Anonim satırlarda yalnızca soru istatistikleri hesaplanır. Sıra numaraları bu sınavın içindeki kayıtları gösterir.</p>':'';
+ dialog('Not tablosunu içe aktar','<p>'+summary+'</p>'+anonymousNotice+'<button id="acceptImportedGrades">'+icon('check')+'Tabloları ekle</button>');
+ const accept=$('acceptImportedGrades');
+ accept.onclick=async()=>{
+  if(course!==owner||!modal.open||accept.disabled)return;
+  accept.disabled=true;
+  const previous=owner.sheets,done=owner.done[4];
+  owner.sheets={...previous,...pending};owner.done[4]=false;
+  try{await save()}
+  catch(error){owner.sheets=previous;owner.done[4]=done;accept.disabled=false;throw error}
+  if(course!==owner||!modal.open||!accept.isConnected)return;
+  activeSheet=tabs[0];grades();
+ };
+}
 const names=()=>Object.keys(course.sheets);
 function headers(s){return [s.anonymous?'Sıra No':'Öğrenci No',s.anonymous?'':'Ad Soyad',...s.questions,'Ham Not','Harf Notu']}
 function defaultExamInclusion(name){return !/mazeret|butunleme/.test(norm(name))}
@@ -135,7 +175,13 @@ function dataRows(s){
 }
 function numeric(v){if(v==null||String(v).trim()==='')return null;const n=Number(String(v).replace(',','.'));return Number.isFinite(n)?n:null}
 function scale(){return course.scale||baseScale}
-function letterOf(raw,letter){let l=String(letter||'').trim().toUpperCase();if(l)return l;let n=numeric(raw);return n!==null&&n>=0&&n<=100?scale().find(([,min])=>n>=min)?.[0]:null}
+function letterOf(raw,letter,tolerance=0){
+ const explicit=String(letter||'').trim().toUpperCase();
+ if(explicit)return explicit;
+ const score=numeric(raw);
+ if(score===null||score<0||score-100>tolerance)return null;
+ return scale().find(([,min])=>min-score<=tolerance)?.[0];
+}
 function dist(){const obs=typeof confirmedObsDistribution==='function'&&confirmedObsDistribution();if(obs)return obs;const scores=new Map();let conflicts=new Set();for(const n of names().filter(included)){if(course.sheets[n].anonymous)continue;for(const r of course.sheets[n].rows){if(rowAbsent(course.sheets[n],r))continue;const id=String(r[0]??'').trim(),k=letterOf(r.at(-2),r.at(-1));if(!id||!k)continue;if(scores.has(id)&&scores.get(id)!==k)conflicts.add(id);scores.set(id,k)}}for(const [id,k] of weightedLetters())if(!scores.has(id)&&k)scores.set(id,k);for(const id of conflicts)scores.delete(id);const counts=new Map(scale().map(([l])=>[l,0]));for(const k of scores.values())counts.set(k,(counts.get(k)||0)+1);return {counts,conflicts:conflicts.size,total:scores.size}}
 function chart(){const {counts,total,conflicts}=dist();let max=Math.max(1,...counts.values());return '<h3>Harf notu dağılımı</h3><p>'+total+' öğrenci'+(conflicts?' · Çelişen dönem sonu notu bulunan '+conflicts+' öğrenci hesap dışında.':'')+'</p>'+(total?Array.from(counts,([k,n])=>'<div style="display:flex;gap:9px;align-items:center;margin:5px 0"><b style="width:34px">'+esc(k)+'</b><span style="width:65%;background:#eee;height:14px"><span style="display:block;background:#535c66;height:14px;width:'+100*n/max+'%"></span></span>'+n+'</div>').join(''):'<p>Dağılım için öğrenci numarasıyla birlikte dönem sonu ham notunu veya OBS harf notunu girin.</p>')}
 function statsView(){const sources=course.files[3].flatMap((f,j)=>/\.pdf$/i.test(f.name)?[btn(esc(f.name)+' · Harfleri oku','reviewObsLetters(course.files[3]['+j+'])','scan-text')]:[]);dialog('Harf notları ve istatistikler',(confirmedObsDistribution()?'<p>Dağılım için onaylanmış OBS harf notları kullanılıyor.</p>':'')+(sources.length?'<div class="stats-sources">'+sources.join('')+'</div>':'')+chartPair()+'<div class="actions">'+btn('Baremi düzenle','scaleView()','sliders-horizontal')+btn('Not tablosu','grades()','sheet')+btn('Sütun grafiği indir',"nativeDownload('bars','Harf Notu Dağılımı - Sütun.png')",'download')+btn('Pasta grafiği indir',"nativeDownload('chart','3. Harf Notu Dağılımı.png')",'download')+'</div>')}

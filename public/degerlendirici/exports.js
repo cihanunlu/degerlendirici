@@ -2,7 +2,10 @@ const activityNames=['Ara Sınavlar','Kısa Sınavlar','Ödevler','Dönem Ödevi
 const packageNames=['Dosya Kapağı','Ders İzlencesi','Öğrenci Devam Çizelgesi','Dönem Sonu Harf Notu Çıktısı','Not Tablosu','Ders Değerlendirme Raporu','Cevap Anahtarları','Öğrenci Faaliyetlerine Ait Örnekler'];
 function exportData(){
  const activities=inferredActivities();
- const ranges=Object.fromEntries(scale().map(([key,min],i)=>[key,key+'('+min+'-'+(i?scale()[i-1][1]-1:100)+')']));
+ const thresholds=scale(),formatThreshold=value=>String(value).replace('.',',');
+ const ranges=Object.fromEntries(thresholds.map(([key,min],i)=>[
+  key,key+' ('+formatThreshold(min)+'–'+(i?'<'+formatThreshold(thresholds[i-1][1]):'100')+')'
+ ]));
  return {code:course.code,name:course.name,...parseTerm(course.term),teacher:teacherName(course),coverTeacher:teacherName(course,true),present:sections.map((_,i)=>Boolean(populated(i)||i===0||i===5&&names().length)),activities,otherActivity:activities[6]?(course.otherActivity||''):'',...reportDefaults(),outcomes:currentOutcomes(),counts:Array.from(dist().counts),ranges,sheets:names().map(n=>{let s=course.sheets[n];return {...s,absentRows:s.rows.flatMap((r,i)=>rowAbsent(s,r)?[i]:[]),name:n,include:included(n),grouped:Boolean(s.grouped),maximums:s.questions.map((_,i)=>s.maximums?.[i]??'')}})};
 }
 async function nativeFile(kind,data=exportData()){

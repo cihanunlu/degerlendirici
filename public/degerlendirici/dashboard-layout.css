@@ -35,17 +35,54 @@
 }
 
 #emptyCourses {
-  padding: clamp(18px, 4vw, 32px);
-  margin-block: 26px 18px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 15px;
+  padding: 18px 22px;
+  margin-block: 26px 22px;
 }
 
 #emptyCourses p {
-  margin-block: 6px 16px;
+  margin-block: 5px 0;
   color: #666d76;
 }
 
 #firstCourse {
   min-height: 44px;
+}
+
+#previewListHelp {
+  margin: 0;
+  padding: 0 21px 15px;
+  color: #666d76;
+  font-size: 14px;
+}
+
+#previewStatus {
+  max-width: 32ch;
+  min-height: 75px;
+  margin: 17px 82px 0 0;
+  color: #e0e3e7;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+#dashboard #pack:disabled {
+  background: #e8eaed;
+  border-color: #d7dade;
+  color: #606873;
+  cursor: default;
+}
+
+#dashboard .quick button:disabled {
+  background: white;
+  color: #616973;
+  cursor: default;
+}
+
+#dashboard .quick button:disabled > svg {
+  visibility: hidden;
 }
 
 #dashboard .course > div:nth-child(2) {
@@ -143,7 +180,7 @@
     grid-area: 1 / 2;
   }
 
-  #dashboard .courseicon {
+  #dashboard .course .courseicon {
     grid-area: 2 / 1;
   }
 
@@ -206,6 +243,20 @@
 
   #dashboard .panelhead .pill {
     white-space: nowrap;
+  }
+
+  #emptyCourses {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 15px;
+    margin-block: 18px;
+  }
+
+  #firstCourse {
+    grid-column: 1 / -1;
+  }
+
+  #previewListHelp {
+    padding-inline: 12px;
   }
 
   #dashboard .file {

@@ -137,24 +137,53 @@ async function confirmCourseDelete(){
  $(course?'courses':'firstCourse').focus();
 }
 function populated(i){return course.files[i].length||i===0&&(course.cover||names().length)||i===3&&dist().total||i===4&&Object.keys(course.sheets).length||i===5&&(course.report||names().length)}
+function toggleSection(i){
+ opened=opened===i?-1:i;
+ render();
+ $('documentRow'+i).focus({preventScroll:true});
+}
 function render(){
- $('emptyCourses').hidden=Boolean(course);
- $('pack').hidden=!course;
- document.querySelector('#dashboard .course').hidden=!course;
- document.querySelector('#dashboard .grid').hidden=!course;
+ const preview=!course;
+ $('emptyCourses').hidden=!preview;
+ $('selectedCoursePanel').hidden=preview;
+ $('dashboardGrid').hidden=false;
+ $('pack').hidden=false;
+ $('pack').disabled=preview;
+ if(preview)$('pack').setAttribute('aria-describedby','previewStatus');
+ else $('pack').removeAttribute('aria-describedby');
+ $('tabs').hidden=preview;
+ $('previewListHelp').hidden=!preview;
+ $('packageProgress').hidden=preview;
+ $('previewStatus').hidden=!preview;
  $("courses").innerHTML=courseList.map(c=>'<option value="'+esc(c.id)+'" '+(c===course?'selected':'')+'>'+esc(c.code+' · '+c.name+(c.term?' · '+c.term:''))+'</option>').join('');
  const selected=$('courses').selectedOptions[0];$('mobileCourse').textContent=selected?.textContent||'';
- if(!course){
-  $('rows').replaceChildren();
-  $('tabs').replaceChildren();
-  $('quick').replaceChildren();
-  icons();
-  return;
+ if(course){
+  const count=course.done.filter(Boolean).length;
+  $('count').textContent=count;
+  $('percent').textContent='%'+Math.round(100*count/sections.length);
+  $('progress').style.width=100*count/sections.length+'%';
+  $('tabs').innerHTML=['Tümü','Eksikler','Tamamlananlar'].map((label,i)=>'<button class="'+(filter===i?'active':'')+'" onclick="filter='+i+';render()">'+label+'</button>').join('');
  }
- const n=course.done.filter(Boolean).length;$("count").textContent=n;$("percent").textContent='%'+Math.round(100*n/8);$("progress").style.width=n*12.5+'%';
- $("tabs").innerHTML=['Tümü','Eksikler','Tamamlananlar'].map((v,i)=>'<button class="'+(filter===i?'active':'')+'" onclick="filter='+i+';render()">'+v+'</button>').join('');
- $("rows").innerHTML=sections.map(([name,sub,ic],i)=>{let ok=course.done[i],review=!ok&&populated(i);if(filter===1&&ok||filter===2&&!ok)return '';return '<button class="row" aria-expanded="'+(i===opened)+'" onclick="opened=opened==='+i+'?-1:'+i+';render()"><span class="docicon">'+icon(ic)+'</span><span class="rowtext"><span class="rowtitle">'+esc(name)+'</span><span class="sub">'+sub+'</span></span><span class="badge '+(ok?'ready':review?'review':'missing')+'">'+(ok?'Tamamlandı':review?'Kontrol':'Eksik')+'</span>'+icon(i===opened?'chevron-up':'chevron-down')+'</button>'+(opened===i?detail(i):'')}).join('')||'<p class="empty">Bu görünümde bölüm bulunmuyor.</p>';
- $("quick").innerHTML=[['Dosya yükle','Belgeyi bir bölüme ekle','upload','pickSection()'],['Sınavlar','Sınav tanımla ve soru ayarlarını düzenle','clipboard-list','examManager()'],['Not tablosu','Sınavları ve puanları düzenle','sheet','grades()'],['Öğrenme çıktıları','ÖÇ listesini ve eşleşmeleri yönet','git-branch','outcomes()']].map(([n,s,ic,a])=>'<button onclick="'+a+'"><span class="actionicon">'+icon(ic)+'</span><span><b>'+n+'</b><span class="sub">'+s+'</span></span>'+icon('chevron-right')+'</button>').join('');icons();
+ $('rows').innerHTML=sections.map(([name,subtitle,sectionIcon,description],i)=>{
+  const done=course?.done[i];
+  if(course&&(filter===1&&done||filter===2&&!done))return '';
+  const review=course&&!done&&populated(i);
+  const expanded=opened===i;
+  const badge=preview?'':'<span class="badge '+(done?'ready':review?'review':'missing')+'">'+(done?'Tamamlandı':review?'Kontrol':'Eksik')+'</span>';
+  const row='<button class="row" id="documentRow'+i+'" aria-expanded="'+expanded+'" onclick="toggleSection('+i+')"><span class="docicon">'+icon(sectionIcon)+'</span><span class="rowtext"><span class="rowtitle">'+esc(name)+'</span><span class="sub">'+esc(subtitle)+'</span></span>'+badge+icon(expanded?'chevron-up':'chevron-down')+'</button>';
+  if(!expanded)return row;
+  return row+(preview?'<div class="detail"><p>'+esc(description)+'</p></div>':detail(i));
+ }).join('')||'<p class="empty">Bu görünümde bölüm bulunmuyor.</p>';
+ $('quick').innerHTML=[
+  ['Dosya yükle','Belgeyi bir bölüme ekle','upload','pickSection()'],
+  ['Sınavlar','Sınav tanımla ve soru ayarlarını düzenle','clipboard-list','examManager()'],
+  ['Not tablosu','Sınavları ve puanları düzenle','sheet','grades()'],
+  ['Öğrenme çıktıları','ÖÇ listesini ve eşleşmeleri yönet','git-branch','outcomes()']
+ ].map(([name,subtitle,actionIcon,action])=>{
+  const attributes=preview?'disabled aria-describedby="previewStatus"':'onclick="'+action+'"';
+  return '<button '+attributes+'><span class="actionicon">'+icon(actionIcon)+'</span><span><b>'+name+'</b><span class="sub">'+subtitle+'</span></span>'+icon('chevron-right')+'</button>';
+ }).join('');
+ icons();
 }
 function detail(i){return '<div class="detail"><p>'+sections[i][3]+'</p>'+attachmentList(i)+'<div class="actions">'+(i===0?btn(course.cover?'Kapağı görüntüle':'Kapak oluştur','coverView()','file-text'):i===1?btn('İzlenceyi oku','readSyllabus()','scan-text'):i===3?btn('Harf dağılımı ve barem','statsView()','chart-column'):i===4?btn('Tabloyu düzenle','grades()','sheet'):i===5?btn('Rapor hazırla','reportView()','notebook-pen'):'')+(populated(i)?btn(course.done[i]?'Yeniden incele':'Kontrol ettim, tamamla','mark('+i+')','check'):'')+((populated(i)||i===0||i===5&&names().length)?btn('Bölümü indir','componentDownload('+i+')','download'):'')+'</div><div class="drop" ondragover="event.preventDefault();this.classList.add(\'drag\')" ondragleave="this.classList.remove(\'drag\')" ondrop="event.preventDefault();upload('+i+',Array.from(event.dataTransfer.files))">'+btn('Dosya seç','pick('+i+')','upload')+' <span class="sub">veya dosyaları buraya bırakın</span></div></div>'}
 async function mark(i){course.done[i]=!course.done[i];await save()}
@@ -280,7 +309,10 @@ function courseForm(add){
    if(add){course=editing;opened=-1;filter=0}
    localStorage.selectedCourse=editing.id;
    render();
-   if(form.isConnected&&modal.open)modal.close();
+   if(form.isConnected&&modal.open){
+    modal.close();
+    if(add&&!owner)$('courses').focus({preventScroll:true});
+   }
   }
  };
 }
@@ -291,13 +323,40 @@ function pick(i,accept=''){target=i;document.getElementById('files').accept=acce
 $("files").onchange=e=>upload(target,Array.from(e.target.files));
 function download(blob,name){const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),30000)}
 function getFile(i,j){const f=course.files[i][j];download(f,i===6||i===7?sectionFilenames(i)[j]:f.name)}
-async function upload(i,files){if(!files.length)return;const owner=course;if(i===6||i===7){classifyFiles(i,files);return}
+async function upload(i,files){
+ if(!files.length)return;
+ const owner=course;
+ if(i===6||i===7){classifyFiles(i,files);return}
+ const title=$('modalTitle'),wasOpen=modal.open,desk=$('gradeDesk');
+ const priorOpen=opened,priorFilter=filter;
+ const sameView=()=>course===owner&&$('modalTitle')===title&&$('gradeDesk')===desk;
+ const sameDialog=()=>sameView()&&modal.open===wasOpen;
  if((i===2||i===4)&&files.length===1&&/\.(pdf|xlsx?|csv)$/i.test(files[0].name)){
   let roster;try{roster=await readRoster(files[0],false)}catch{}
   if(course!==owner){notify('Ders değişti. Dosyayı ilgili derste yeniden seçin.');return}
-  if(roster?.examList&&roster.entries.length){showRoster(roster,files[0].name);return}
+  if(roster?.examList&&roster.entries.length){
+   if(sameDialog()&&opened===priorOpen&&filter===priorFilter)showRoster(roster,files[0].name);
+   return;
+  }
  }
- course.files[i].push(...files);course.done[i]=false;opened=i;filter=0;await save();if(course!==owner)return;modal.close();notify('Dosyalar bölüme eklendi.');if(i===1)await readSyllabus();else if(i===4||i===3){let f=files.find(f=>/\.(xlsx?|csv)$/i.test(f.name));if(f)await importBook(f);else if(i===3&&files.length===1&&/\.pdf$/i.test(files[0].name))await reviewObsLetters(files[0])}else if(i===2&&/\.(xlsx?|csv)$/i.test(files[0].name)){let w=await readBook(files[0]);dialog('Devam çizelgesi önizlemesi',w.SheetNames.map(n=>'<h3>'+esc(n)+'</h3>'+previewTable(matrix(w,n).slice(0,8))).join('')+btn('Kapat','modal.close()'))}}
+ const review=sameDialog()&&opened===priorOpen&&filter===priorFilter;
+ course.files[i].push(...files);course.done[i]=false;
+ if(review){opened=i;filter=0}
+ await save();
+ if(course!==owner)return;
+ notify('Dosyalar bölüme eklendi.');
+ if(!review||!sameDialog()||opened!==i||filter!==0)return;
+ if(modal.open)modal.close();
+ if(i===1)await readSyllabus();
+ else if(i===4||i===3){
+  const file=files.find(f=>/\.(xlsx?|csv)$/i.test(f.name));
+  if(file)await importBook(file);
+  else if(i===3&&files.length===1&&/\.pdf$/i.test(files[0].name))await reviewObsLetters(files[0]);
+ }else if(i===2&&/\.(xlsx?|csv)$/i.test(files[0].name)){
+  const workbook=await readBook(files[0]);
+  if(sameView()&&!modal.open&&opened===i&&filter===0)dialog('Devam çizelgesi önizlemesi',workbook.SheetNames.map(n=>'<h3>'+esc(n)+'</h3>'+previewTable(matrix(workbook,n).slice(0,8))).join('')+btn('Kapat','modal.close()'));
+ }
+}
 function packageDialog(){let missing=sections.filter((s,i)=>!course.done[i]);dialog('Ders paketini indir','<p>'+esc(course.code+' · '+course.name)+'</p>'+(missing.length?'<h3>Kontrolü tamamlanmamış bölümler</h3><ul class="package-checklist">'+missing.map(([n])=>'<li>'+n+'</li>').join('')+'</ul>':'<p>Sekiz bölümün tamamı hazır.</p>')+'<div class="actions">'+btn(missing.length?'Taslak ZIP indir':'ZIP indir','makeZip()','download')+'</div>')}
 $("pack").onclick=packageDialog;
 window.addEventListener('unhandledrejection',e=>{notify('İşlem tamamlanamadı. '+(e.reason?.message||'Tarayıcı depolama alanını kontrol edin.'))});
