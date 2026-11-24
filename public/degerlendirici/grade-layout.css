@@ -1,0 +1,193 @@
+#gradePage .sheet-heading {
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 14px;
+}
+
+#gradePage .sheet-heading > div,
+#gradePage .exam-switch nav {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#gradePage .exam-switch {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+}
+
+#gradePage .exam-switch > button {
+  flex-shrink: 0;
+}
+
+#gradeDesk .grade-tools > button,
+#gradeDesk .export-menu summary {
+  min-height: 40px;
+}
+
+#gradeDesk .import-help {
+  margin-block: 8px 0;
+}
+
+#gradeDesk .grade-template-link {
+  display: inline-block;
+  color: #24374d;
+  text-underline-offset: 2px;
+}
+
+#gradeDesk .grade-empty {
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  padding: 28px 0 32px;
+}
+
+#gradeDesk .grade-empty :is(h3, p) {
+  margin: 0;
+}
+
+#gradeDesk .grade-empty button {
+  min-height: 40px;
+  margin-top: 6px;
+}
+
+#gradeDesk .table-tools {
+  flex-wrap: wrap;
+  margin: 12px 0 7px;
+}
+
+#gradeDesk .student-search {
+  flex: 1 1 150px;
+  width: auto;
+  max-width: 320px;
+}
+
+#gradeDesk .student-search input[type=search] {
+  font-size: 16px;
+}
+
+#gradeDesk .exam-settings summary {
+  padding-block: 3px;
+}
+
+.exam-settings-body {
+  margin-top: 7px;
+  padding-top: 10px;
+  border-top: 1px solid #dce0e4;
+}
+
+.exam-setting-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px 18px;
+}
+
+.exam-setting-controls label {
+  margin: 0;
+}
+
+.exam-setting-controls .exam-inclusion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  cursor: pointer;
+}
+
+.exam-inclusion input {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.exam-question-count {
+  display: flex;
+  align-items: end;
+  gap: 6px;
+}
+
+#examQuestions, #examWeight {
+  width: 84px;
+}
+
+.exam-question-count button {
+  min-height: 38px;
+}
+
+.exam-settings-body > p {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+#questionCountMessage:empty {
+  margin: 0;
+}
+
+#gradeDesk .setting-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 112px), 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+#gradeDesk .setting-grid fieldset {
+  min-width: 0;
+  padding: 3px 8px 8px;
+}
+
+#gradeDesk .setting-grid legend {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+#gradeDesk .setting-grid label {
+  margin-block: 4px 0;
+}
+
+#gradeDesk .setting-grid input {
+  min-width: 0;
+  max-width: min(100%, 125px);
+  font-size: 16px;
+  padding: 5px 6px;
+}
+
+#gradeDesk .grade-scroll {
+  scroll-padding-block: 62px 42px;
+}
+
+#gradeDesk .grid-end {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 4px 16px;
+}
+
+#gradeSaved {
+  text-align: right;
+}
+
+.exam-remove {
+  color: #8f2634;
+}
+
+#removeExamError:empty {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  #gradePage .sheet-panel {
+    padding: 10px;
+  }
+
+  #gradeDesk .student-search {
+    max-width: none;
+  }
+
+  #gradeDesk .grid-end {
+    grid-template-columns: 1fr auto;
+  }
+
+  #gradeDesk .grid-end > :nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

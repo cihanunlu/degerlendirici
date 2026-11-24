@@ -1,9 +1,0 @@
-<!doctype html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Ders belgelerini cihazınızda düzenleyip değerlendirme dosyasını ZIP olarak indirin."><title>Değerlendirici</title><link rel="stylesheet" href="./src/style.css"></head>
-<body><header><div><a href="./" class="brand">Değerlendirici</a><a href="https://github.com/tunabirgun/degerlendirici">GitHub ↗</a></div></header>
-<main><h1>Ders Değerlendirme Dosyası</h1><div class="bar"><label id="picker" hidden>Ders<select id="courses"></select></label><button id="new" disabled>Yeni ders</button><button id="edit" hidden>Ders bilgileri</button></div>
-<p id="empty">Başlamak için bir ders ekleyin. Belgeler bu tarayıcıda saklanır.</p>
-<section id="workspace" hidden><div class="summary"><div><h2>Belge Listesi</h2><span id="progress"></span></div><button id="pack" class="primary">Paketi İndir</button></div><div id="sections"></div></section>
-<p id="status" role="status"></p></main><footer><a href="https://github.com/tunabirgun">@tunabirgun</a></footer>
-<dialog id="dialog"><form id="courseForm"><h2>Ders bilgileri</h2><label>Ders adı<input name="title" required maxlength="160"></label><label>Ders kodu<input name="code" maxlength="40"></label><label>Öğretim elemanı<input name="teacher" maxlength="160"></label><div class="bar"><label>Akademik yıl<select name="year"></select></label><label>Dönem<select name="term"><option>Güz</option><option>Bahar</option><option>Yaz</option></select></label></div><div class="actions"><button id="delete" type="button">Dersi sil</button><button type="button" id="cancel">Vazgeç</button><button class="primary">Kaydet</button></div></form></dialog>
-<script type="module" src="./src/main.js"></script></body></html>

@@ -1,0 +1,196 @@
+#modal:not(:has(#gradeDesk)) {
+  --dialog-padding: clamp(14px, 4vw, 24px);
+  width: min(680px, calc(100% - 24px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 88px 18px;
+}
+
+#modal:not(:has(#gradeDesk)) #modalbody {
+  padding: 0 var(--dialog-padding) var(--dialog-padding);
+  overflow-wrap: anywhere;
+}
+
+#modal:not(:has(#gradeDesk)) .mhead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin: 0 calc(-1 * var(--dialog-padding)) 16px;
+  padding: 10px var(--dialog-padding);
+  border-bottom: 1px solid #dadee3;
+  background: white;
+}
+
+#modal .mhead h2 {
+  min-width: 0;
+  line-height: 1.2;
+}
+
+#modal .mhead button {
+  flex: none;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+#modal:not(:has(#gradeDesk)) :is(input, textarea, summary, a):focus-visible {
+  outline: 2px solid #667892;
+  outline-offset: 2px;
+}
+
+#modal :is(fieldset, .fieldpair > label, .outcome-row > label) {
+  min-width: 0;
+}
+
+#modal :is(input, textarea, select) {
+  max-width: 100%;
+}
+
+#modal :where(label:not([hidden]):has(> input[type=checkbox])) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+#modal :where(label > input[type=checkbox]) {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #353c45;
+  cursor: pointer;
+}
+
+#modal .fieldpair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#modal .fieldpair > label {
+  margin-block: 0 12px;
+}
+
+#modal .outcome-row {
+  grid-template-columns: 90px minmax(0, 1fr) auto;
+  padding-bottom: 8px;
+}
+
+#modal .outcome-row textarea {
+  min-height: 72px;
+}
+
+#modal .outcome-row .oc-actions button {
+  min-width: 36px;
+  min-height: 36px;
+  margin-top: 32px;
+}
+
+#modal #filingForm fieldset {
+  margin-bottom: 16px;
+}
+
+#modal #filingForm legend {
+  max-width: 100%;
+}
+
+#modal .q-picks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+}
+
+#modal .suggested-name:last-child {
+  margin-bottom: 0;
+}
+
+#modal .report-evidence details {
+  margin-block: 8px;
+}
+
+#modal .report-evidence .both-charts {
+  margin: 4px 10px 10px;
+}
+
+#modal .both-charts {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+#modal .vertical-bars {
+  overflow-x: auto;
+  justify-content: start;
+  gap: 4px;
+}
+
+#modal .vertical-bars > div {
+  flex: 1 0 1.25em;
+}
+
+#modal .vertical-bars small {
+  display: block;
+}
+
+#modal .vertical-bars span {
+  min-width: 0;
+}
+
+#modal .stats-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 0 14px;
+}
+
+#modal .package-checklist {
+  padding-inline-start: 1.4em;
+  margin-block: 8px 16px;
+}
+
+#modal .package-checklist li + li {
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  #modal .both-charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  #modal .fieldpair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #modal .outcome-row {
+    grid-template-columns: 96px minmax(0, 1fr) auto;
+    gap: 4px 8px;
+  }
+
+  #modal .outcome-row > label:nth-child(2) {
+    grid-column: 1 / -2;
+    margin: 0;
+  }
+
+  #modal .outcome-row .oc-actions {
+    grid-row: 2;
+  }
+
+  #modal .outcome-row .oc-actions button {
+    margin-top: 24px;
+  }
+
+  #modal:not(:has(#gradeDesk)) :is(input:not([type=checkbox]), select, textarea) {
+    font-size: 16px;
+  }
+}
+
+#modal #otherActivityField[hidden] {
+  display: none;
+}
+
+#modal #otherActivityField:not([hidden]) {
+  margin-inline-start: 24px;
+}
