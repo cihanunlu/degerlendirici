@@ -57,4 +57,42 @@ Proje klasöründe Python 3 ile aşağıdaki komutu çalıştırıp [yerel uygul
 python -m http.server 8000 --bind 127.0.0.1 --directory public
 ```
 
+### OBS’den belge alma (isteğe bağlı)
+
+Yerel köprü, İstanbul Yeni Yüzyıl Üniversitesi OBS akademik panelinden seçilen dersin belgelerini alıp ilgili bölümlere ekler.
+
+#### Hızlı başlangıç
+
+1. [Python 3.10 veya üzerini](https://www.python.org/downloads/) kurun. GitHub’da **Code → Download ZIP** ile projeyi indirip klasöre çıkarın.
+2. Windows’ta `obs-koprusu/baslat.bat`, macOS’ta `obs-koprusu/baslat.command` dosyasına çift tıklayın ya da proje klasöründe aşağıdaki komutu çalıştırın. Windows’ta `py`, macOS ve Linux’ta `python3` gerekebilir. İlk çalıştırma gerekenleri kurar.
+
+   ```sh
+   python obs-koprusu/baslat.py
+   ```
+
+3. Açılan sayfada **OBS’ye bağlan** düğmesine basın. Kullanıcı adı, şifre ve güvenlik kodunu ayrı açılan OBS penceresine yazın. Bunlar Değerlendirici’ye aktarılmaz. OBS penceresini açık bırakın.
+4. Değerlendirici’de akademik yılı, dönemi, dersi ve belgeleri seçip **Belgeleri al** düğmesine basın.
+5. **Öğrenci listesini oku** ve **Harf notlarını oku** ile verileri kontrol edip onaylayın.
+6. Kayıtları temizlemek için dersin yanındaki **Sıfırla** düğmesini kullanın. Bitince terminal penceresinde Ctrl+C’ye basın.
+
+#### Nasıl çalışır?
+
+- Köprü yalnızca 127.0.0.1 adresini dinler ve OBS’de yalnızca listeleme ve yazdırma işlemlerini kullanır.
+- Alınan PDF’ler doğrudan tarayıcıdaki ders kaydına eklenir. OBS penceresinin profili bağlantı kapanınca silinir.
+- Oturum yarıda kapanırsa alınan belgeler kaydedilir, yeniden girişten sonra kalanlardan devam edilir.
+- Düğme GitHub Pages sürümünde görünmez. Kayıtlar tarayıcıda siteye göre ayrı saklandığından, iki sürümdeki dersler ortak değildir.
+
+**Sorun giderme.** `python obs-koprusu/baslat.py --tani` kurulumu ve OBS erişimini denetler. Uygulamadaki **Tanı bilgisi** düğmesi, öğrenci, ders ve hesap bilgisi içermeyen bir metin hazırlar.
+
+| Durum | Yapılacak |
+|---|---|
+| Düğme “OBS bağlantı izni yok” diyor | Terminal penceresindeki bağlantıyı açın. |
+| Yerel sunucuya ulaşılamadı | Komutu yeniden çalıştırın. Dersler silinmez. |
+| Başka öğretim elemanının dersleri geliyor | OBS oturumu açık kalmıştır. **Farklı hesapla gir** düğmesini kullanın. |
+| Eski dersler veya seçimler görünüyor | **Sıfırla** ile son seçimleri ya da tarayıcıdaki tüm dersleri temizleyin. |
+| Dersler görünmüyor | Her zamanki adresi ve bağlantı noktasını kullandığınızdan emin olun. |
+| “Verilen Dersler” bulunamadı | OBS dilini Türkçe yapın. |
+| Belge boş | Bu şubede kayıtlı öğrenci veya girilmiş veri yoktur. Diğer şube ya da programı deneyin. |
+| OBS oturumu sürekli kapanıyor | OBS’yi başka sekme veya cihazda kapatın. |
+
 Uygulama kodu, Türkçe OCR dosyaları ve belge şablonları `public/degerlendirici/` dizinindedir. GitHub Actions, `main` dalına gönderilen değişiklikleri GitHub Pages üzerinden yayımlar.

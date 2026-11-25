@@ -193,6 +193,13 @@
   }
 }
 
+@media (min-width: 761px) and (max-width: 1000px) {
+  #dashboard .courseactions {
+    grid-area: 3 / 1 / auto / -1;
+    margin: 8px 0 0;
+  }
+}
+
 @media (max-width: 760px) {
   #dashboard .course {
     grid-template-columns: auto minmax(0, 1fr);

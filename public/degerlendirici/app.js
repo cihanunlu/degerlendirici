@@ -226,7 +226,7 @@ function storeCourseFields(form){
 function courseForm(add){
  const owner=course;
  const syllabus='<fieldset><legend>Ders izlencesi</legend><label>Dosya seç (isteğe bağlı)<input id="courseSyllabus" type="file" accept=".pdf,.docx,.txt,image/*"></label><p id="courseSyllabusStatus" role="status">Bir dosya seçerek ders bilgilerini ve ana öğrenme çıktılarını otomatik doldurabilirsiniz.</p></fieldset>';
- dialog(add?'Yeni ders':'Ders bilgileri','<form id="form">'+syllabus+
+ dialog(add?'Yeni ders':'Ders bilgileri','<form id="form" autocomplete="off">'+syllabus+
   courseFields(add?{}:owner)+'<div id="courseSyllabusOutcomes" hidden></div>'+
   '<div class="actions"><button class="primary" type="submit">Kaydet</button><button type="button" onclick="modal.close()">Vazgeç</button>'+
   (add?'':'<button id="deleteCourse" type="button" onclick="confirmCourseDelete()">Dersi sil</button>')+'</div></form>');
